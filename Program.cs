@@ -11,6 +11,10 @@ namespace DependencyInjectionDemo
             FloorLamp lamp = new FloorLamp("The lamp");
             lamp.TurnOn();
             lamp.TurnOn();
+
+            FloorLamp secondLamp = new FloorLamp("Second lamp");
+            secondLamp.TurnOn();
+            secondLamp.TurnOn();
         }
     }
 
