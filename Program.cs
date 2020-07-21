@@ -7,10 +7,15 @@ namespace DependencyInjectionDemo
     {
         static void Main(string[] args)
         {
+            // Setting the static allows flexibility
+            // However, it is a hidden dependency which won't be caught until runtime
+            Lamp.PowerSource = new SuperPowerSource();
             Console.WriteLine("Starting Main.");
             FloorLamp lamp = new FloorLamp("The lamp");
             lamp.TurnOn();
 
+            // And still have the problem that the static variable is global state...
+            Lamp.PowerSource = new MainPowerSource();
             SuperSaiyanLamp superSaiyanLamp = new SuperSaiyanLamp("Super Saiyan lamp");
             superSaiyanLamp.TurnOn();
 
@@ -42,7 +47,7 @@ namespace DependencyInjectionDemo
     {
         // Power source can be expensive to make, so lets share one amongst all lamps
         // Beware that static variables are effectively global state!
-        public static SuperPowerSource PowerSource = new SuperPowerSource();
+        public static IPowerSource PowerSource;
     }
 
     class FloorLamp : ILamp
