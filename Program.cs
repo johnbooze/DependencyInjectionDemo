@@ -33,17 +33,20 @@ namespace DependencyInjectionDemo
         public double Lumens { get; }
         private bool isOperational = true;
 
+        private MainPowerSource powerSource;
+
         public FloorLamp(string name)
         {
             this.Name = name;
             this.AmpsNeeded = 15;
             this.MaximumVoltage = 120;
             this.Lumens = 30;
+
+            this.powerSource = new MainPowerSource();
         }
         public void TurnOn()
         {
-            MainPowerSource powerSource = new MainPowerSource();
-            Electricity power = powerSource.GenerateElectricty(this.AmpsNeeded);
+            Electricity power = this.powerSource.GenerateElectricty(this.AmpsNeeded);
 
             if (power.Volts > this.MaximumVoltage)
             {
