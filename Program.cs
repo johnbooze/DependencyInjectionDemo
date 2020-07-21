@@ -41,7 +41,8 @@ namespace DependencyInjectionDemo
         }
         public void TurnOn()
         {
-            Electricity power; // Need electricity to turn on the lamp
+            MainPowerSource powerSource = new MainPowerSource();
+            Electricity power = powerSource.GenerateElectricty(this.AmpsNeeded);
 
             if (power.Volts > this.MaximumVoltage)
             {
