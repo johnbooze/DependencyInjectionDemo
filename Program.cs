@@ -120,17 +120,22 @@ namespace DependencyInjectionDemo
         }
     }
 
-    // A main power source intended for a house
-    class MainPowerSource
+    interface IPowerSource
+    {
+        public Electricity GenerateElectricty(double ampsRequested);
+    }
+
+    class VariablePowerSource
     {
         private const double Voltage = 120;
-        private const double MaximumAmperage = 1000;
+        private readonly double MaximumAmperage = 1000;
         private bool isCircuitBlown = false;
 
-        public MainPowerSource()
+        public VariablePowerSource(double maximumAmperage)
         {
-            int constructionCost = 5000;
-            Console.WriteLine($"Constructing an expensive ({constructionCost}) MainPowerSource ...");
+            this.MaximumAmperage = maximumAmperage;
+            int constructionCost = (int)(15 * maximumAmperage);
+            Console.WriteLine($"Constructing a VariablePowerSource ({constructionCost})...");
             System.Threading.Thread.Sleep(constructionCost);
         }
 
@@ -152,35 +157,53 @@ namespace DependencyInjectionDemo
         }
     }
 
-    // A super power source intended for an office building
-    class SuperPowerSource
+    // A main power source intended for a house
+    class MainPowerSource : IPowerSource
     {
-        private const double Voltage = 120;
-        private const double MaximumAmperage = 10000;
-        private bool isCircuitBlown = false;
+        private readonly VariablePowerSource powerSource;
 
-        public SuperPowerSource()
+        public MainPowerSource()
         {
-            int constructionCost = 15000;
-            Console.WriteLine($"Constructing a super expensive ({constructionCost}) SuperPowerSource ...");
-            System.Threading.Thread.Sleep(constructionCost);
+            Console.WriteLine($"Constructing an expensive MainPowerSource ...");
+            this.powerSource = new VariablePowerSource(1000);
         }
 
         public Electricity GenerateElectricty(double ampsRequested)
         {
-            if (ampsRequested > MaximumAmperage)
-            {
-                this.isCircuitBlown = true;
-            }
+            return this.powerSource.GenerateElectricty(ampsRequested);
+        }
+    }
 
-            if (this.isCircuitBlown)
-            {
-                return new Electricity(0, 0);
-            }
-            else
-            {
-                return new Electricity(Voltage, ampsRequested);
-            }
+    // A super power source intended for an office building
+    class SuperPowerSource : IPowerSource
+    {
+        private readonly VariablePowerSource powerSource;
+
+        public SuperPowerSource()
+        {
+            Console.WriteLine($"Constructing a super expensive SuperPowerSource ...");
+            this.powerSource = new VariablePowerSource(1500);
+        }
+
+        public Electricity GenerateElectricty(double ampsRequested)
+        {
+            return this.powerSource.GenerateElectricty(ampsRequested);
+        }
+    }
+
+    class LightweightPowerSource : IPowerSource
+    {
+        private readonly VariablePowerSource powerSource;
+
+        public LightweightPowerSource()
+        {
+            Console.WriteLine($"Constructing a LightweightPowerSource ...");
+            this.powerSource = new VariablePowerSource(15);
+        }
+
+        public Electricity GenerateElectricty(double ampsRequested)
+        {
+            return this.powerSource.GenerateElectricty(ampsRequested);
         }
     }
 }
