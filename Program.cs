@@ -38,6 +38,13 @@ namespace DependencyInjectionDemo
         void TurnOn();
     }
 
+    class Lamp
+    {
+        // Power source can be expensive to make, so lets share one amongst all lamps
+        // Beware that static variables are effectively global state!
+        public static MainPowerSource PowerSource = new MainPowerSource();
+    }
+
     class FloorLamp : ILamp
     {
         public string Name { get; }
@@ -45,9 +52,6 @@ namespace DependencyInjectionDemo
         public double MaximumVoltage { get; }
         public double Lumens { get; }
         private bool isOperational = true;
-
-        // Power source can be expensive to make, so lets share one amongst all FloorLamps
-        private static MainPowerSource PowerSource = new MainPowerSource();
 
         public FloorLamp(string name)
         {
@@ -59,7 +63,7 @@ namespace DependencyInjectionDemo
         }
         public void TurnOn()
         {
-            Electricity power = PowerSource.GenerateElectricty(this.AmpsNeeded);
+            Electricity power = Lamp.PowerSource.GenerateElectricty(this.AmpsNeeded);
 
             if (power.Volts > this.MaximumVoltage)
             {
@@ -87,9 +91,6 @@ namespace DependencyInjectionDemo
         public double Lumens { get; }
         private bool isOperational = true;
 
-        // Power source can be expensive to make, so lets share one amongst all SuperSaiyanLamps
-        private static MainPowerSource PowerSource = new MainPowerSource();
-
         public SuperSaiyanLamp(string name)
         {
             this.Name = name;
@@ -100,7 +101,7 @@ namespace DependencyInjectionDemo
         }
         public void TurnOn()
         {
-            Electricity power = PowerSource.GenerateElectricty(this.AmpsNeeded);
+            Electricity power = Lamp.PowerSource.GenerateElectricty(this.AmpsNeeded);
 
             if (power.Volts > this.MaximumVoltage)
             {
