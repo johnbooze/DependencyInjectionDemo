@@ -7,23 +7,34 @@ namespace DependencyInjectionDemo
     {
         static void Main(string[] args)
         {
-            // Setting the static allows flexibility
-            // However, it is a hidden dependency which won't be caught until runtime
-            Lamp.PowerSource = new SuperPowerSource();
             Console.WriteLine("Starting Main.");
-            FloorLamp lamp = new FloorLamp("The lamp");
+            TestFloorLamps();
+        }
+
+        static void TestFloorLamps()
+        {
+            IPowerSource lightweightPowerSource = new LightweightPowerSource();
+            FloorLamp lamp = new FloorLamp("The lamp", lightweightPowerSource);
+            lamp.TurnOn();
             lamp.TurnOn();
 
-            // And still have the problem that the static variable is global state...
-            Lamp.PowerSource = new MainPowerSource();
-            SuperSaiyanLamp superSaiyanLamp = new SuperSaiyanLamp("Super Saiyan lamp");
+            // Now that powerSource is exposed as a constructor argument I have the flexibility to use an existing IPowerSource
+            // or use a different one for isolation
+            FloorLamp secondLamp = new FloorLamp("Second lamp", lightweightPowerSource);
+            secondLamp.TurnOn();
+            secondLamp.TurnOn();
+
+            IPowerSource isolatedLightweightPowerSource = new LightweightPowerSource();
+            FloorLamp thirdLamp = new FloorLamp("Third lamp", isolatedLightweightPowerSource);
+            thirdLamp.TurnOn();
+            thirdLamp.TurnOn();
+        }
+
+        static void TestSuperSaiyanLamp()
+        {
+            IPowerSource lightweightPowerSource = new SuperPowerSource();
+            SuperSaiyanLamp superSaiyanLamp = new SuperSaiyanLamp("Super Saiyan lamp", lightweightPowerSource);
             superSaiyanLamp.TurnOn();
-
-            lamp.TurnOn();
-
-            FloorLamp secondLamp = new FloorLamp("Second lamp");
-            secondLamp.TurnOn();
-            secondLamp.TurnOn();
         }
     }
 
@@ -43,13 +54,6 @@ namespace DependencyInjectionDemo
         void TurnOn();
     }
 
-    class Lamp
-    {
-        // Power source can be expensive to make, so lets share one amongst all lamps
-        // Beware that static variables are effectively global state!
-        public static IPowerSource PowerSource;
-    }
-
     class FloorLamp : ILamp
     {
         public string Name { get; }
@@ -58,17 +62,22 @@ namespace DependencyInjectionDemo
         public double Lumens { get; }
         private bool isOperational = true;
 
-        public FloorLamp(string name)
+        private IPowerSource powerSource;
+
+        // "Don't look for things; ask for things"
+        // Simply take our dependency (powerSource) as a constructor argument
+        public FloorLamp(string name, IPowerSource powerSource)
         {
             this.Name = name;
             this.AmpsNeeded = 15;
             this.MaximumVoltage = 120;
             this.Lumens = 30;
 
+            this.powerSource = powerSource;
         }
         public void TurnOn()
         {
-            Electricity power = Lamp.PowerSource.GenerateElectricty(this.AmpsNeeded);
+            Electricity power = this.powerSource.GenerateElectricty(this.AmpsNeeded);
 
             if (power.Volts > this.MaximumVoltage)
             {
@@ -96,17 +105,20 @@ namespace DependencyInjectionDemo
         public double Lumens { get; }
         private bool isOperational = true;
 
-        public SuperSaiyanLamp(string name)
+        private IPowerSource powerSource;
+
+        public SuperSaiyanLamp(string name, IPowerSource powerSource)
         {
             this.Name = name;
             this.AmpsNeeded = 1500;
             this.MaximumVoltage = 120;
             this.Lumens = 9001; // It's over 9000!
 
+            this.powerSource = powerSource;
         }
         public void TurnOn()
         {
-            Electricity power = Lamp.PowerSource.GenerateElectricty(this.AmpsNeeded);
+            Electricity power = this.powerSource.GenerateElectricty(this.AmpsNeeded);
 
             if (power.Volts > this.MaximumVoltage)
             {
