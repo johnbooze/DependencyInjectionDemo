@@ -42,7 +42,7 @@ namespace DependencyInjectionDemo
     {
         // Power source can be expensive to make, so lets share one amongst all lamps
         // Beware that static variables are effectively global state!
-        public static MainPowerSource PowerSource = new MainPowerSource();
+        public static SuperPowerSource PowerSource = new SuperPowerSource();
     }
 
     class FloorLamp : ILamp
@@ -129,8 +129,41 @@ namespace DependencyInjectionDemo
 
         public MainPowerSource()
         {
-            Console.WriteLine("Constructing an expensive MainPowerSource...");
-            System.Threading.Thread.Sleep(5000);
+            int constructionCost = 5000;
+            Console.WriteLine($"Constructing an expensive ({constructionCost}) MainPowerSource ...");
+            System.Threading.Thread.Sleep(constructionCost);
+        }
+
+        public Electricity GenerateElectricty(double ampsRequested)
+        {
+            if (ampsRequested > MaximumAmperage)
+            {
+                this.isCircuitBlown = true;
+            }
+
+            if (this.isCircuitBlown)
+            {
+                return new Electricity(0, 0);
+            }
+            else
+            {
+                return new Electricity(Voltage, ampsRequested);
+            }
+        }
+    }
+
+    // A super power source intended for an office building
+    class SuperPowerSource
+    {
+        private const double Voltage = 120;
+        private const double MaximumAmperage = 10000;
+        private bool isCircuitBlown = false;
+
+        public SuperPowerSource()
+        {
+            int constructionCost = 15000;
+            Console.WriteLine($"Constructing a super expensive ({constructionCost}) SuperPowerSource ...");
+            System.Threading.Thread.Sleep(constructionCost);
         }
 
         public Electricity GenerateElectricty(double ampsRequested)
