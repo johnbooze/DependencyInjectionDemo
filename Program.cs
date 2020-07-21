@@ -37,7 +37,8 @@ namespace DependencyInjectionDemo
         public double Lumens { get; }
         private bool isOperational = true;
 
-        private MainPowerSource powerSource;
+        // Power source can be expensive to make, so lets share one amongst all FloorLamps
+        private static MainPowerSource PowerSource = new MainPowerSource();
 
         public FloorLamp(string name)
         {
@@ -46,11 +47,10 @@ namespace DependencyInjectionDemo
             this.MaximumVoltage = 120;
             this.Lumens = 30;
 
-            this.powerSource = new MainPowerSource();
         }
         public void TurnOn()
         {
-            Electricity power = this.powerSource.GenerateElectricty(this.AmpsNeeded);
+            Electricity power = PowerSource.GenerateElectricty(this.AmpsNeeded);
 
             if (power.Volts > this.MaximumVoltage)
             {
@@ -99,5 +99,4 @@ namespace DependencyInjectionDemo
             }
         }
     }
-
 }
