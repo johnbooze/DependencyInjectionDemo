@@ -10,6 +10,7 @@ namespace DependencyInjectionDemo
             Console.WriteLine("Starting Main.");
             FloorLamp lamp = new FloorLamp("The lamp");
             lamp.TurnOn();
+            lamp.TurnOn();
         }
     }
 
