@@ -10,6 +10,10 @@ namespace DependencyInjectionDemo
             Console.WriteLine("Starting Main.");
             FloorLamp lamp = new FloorLamp("The lamp");
             lamp.TurnOn();
+
+            SuperSaiyanLamp superSaiyanLamp = new SuperSaiyanLamp("Super Saiyan lamp");
+            superSaiyanLamp.TurnOn();
+
             lamp.TurnOn();
 
             FloorLamp secondLamp = new FloorLamp("Second lamp");
@@ -29,7 +33,12 @@ namespace DependencyInjectionDemo
         }
     }
 
-    class FloorLamp
+    interface ILamp
+    {
+        void TurnOn();
+    }
+
+    class FloorLamp : ILamp
     {
         public string Name { get; }
         public double AmpsNeeded { get; }
@@ -46,6 +55,47 @@ namespace DependencyInjectionDemo
             this.AmpsNeeded = 15;
             this.MaximumVoltage = 120;
             this.Lumens = 30;
+
+        }
+        public void TurnOn()
+        {
+            Electricity power = PowerSource.GenerateElectricty(this.AmpsNeeded);
+
+            if (power.Volts > this.MaximumVoltage)
+            {
+                isOperational = false; // Too much voltage burns out the lamp :(
+            }
+
+            bool turnedOn = isOperational && (power.Amps >= this.AmpsNeeded);
+            if (turnedOn)
+            {
+                Console.WriteLine($"{this.Name} turned on and produced {this.Lumens} lumens.");
+            }
+            else
+            {
+                Console.WriteLine($"Not enough power to turn on {this.Name} :(");
+            }
+        }
+    }
+
+    // New kind of lamp but now we have the Code smell: duplication of code
+    class SuperSaiyanLamp : ILamp
+    {
+        public string Name { get; }
+        public double AmpsNeeded { get; }
+        public double MaximumVoltage { get; }
+        public double Lumens { get; }
+        private bool isOperational = true;
+
+        // Power source can be expensive to make, so lets share one amongst all SuperSaiyanLamps
+        private static MainPowerSource PowerSource = new MainPowerSource();
+
+        public SuperSaiyanLamp(string name)
+        {
+            this.Name = name;
+            this.AmpsNeeded = 1500;
+            this.MaximumVoltage = 120;
+            this.Lumens = 9001; // It's over 9000!
 
         }
         public void TurnOn()
