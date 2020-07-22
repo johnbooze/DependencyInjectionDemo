@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Dynamic;
+using System.Linq;
 
 namespace DependencyInjectionDemo
 {
@@ -7,41 +7,62 @@ namespace DependencyInjectionDemo
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Starting Main.");
-            FloorLamp lamp = new FloorLamp("The lamp");
+            Run();
+            Console.WriteLine("----");
+            Tests();
+        }
+
+        // Simulation of the production service
+        static void Run()
+        {
+            Console.WriteLine("Running the service");
+            Lamp lamp = new Lamp("The lamp");
             lamp.TurnOn();
         }
-    }
 
-    class Electricity
-    {
-        public double Volts { get; }
-        public double Amps { get; }
-        public Electricity(double volts, double amps)
+        // For simplicity of demonstration we'll write the tests here instead of a dedicated unit test project
+        static void Tests()
         {
-            this.Volts = volts;
-            this.Amps = amps;
+            Console.WriteLine("Running tests");
+
+            Lamp lamp = new Lamp("First lamp");
+            Console.WriteLine("Test - Turn on");
+            Assert(lamp.TurnOn().Lumens > 0, "Turning on lamp produced light");
+
+            Lamp secondLamp = new Lamp("Second lamp");
+            Console.WriteLine("Test - second lamp can turn on for 4 hours producing at least 100 lumens");
+            foreach (var iteration in Enumerable.Range(1, 4))
+            {
+                Light lightProduced = lamp.TurnOn();
+                Assert(lightProduced.Lumens > 100, $"Iteration {iteration} Produced at least 100 lumens");
+            }
+        }
+
+        static void Assert(bool isTrue, string message)
+        {
+            string result = isTrue ? "PASS" : "FAIL";
+            Console.WriteLine("  " + result + ": " + message);
         }
     }
 
-    class FloorLamp
+    class Lamp
     {
         public string Name { get; }
         public double AmpsNeeded { get; }
         public double MaximumVoltage { get; }
-        public double Lumens { get; }
         private bool isOperational = true;
 
-        public FloorLamp(string name)
+        public Lamp(string name)
         {
             this.Name = name;
-            this.AmpsNeeded = 15;
+            this.AmpsNeeded = 1;
             this.MaximumVoltage = 120;
-            this.Lumens = 30;
         }
-        public void TurnOn()
+
+        // Turns on the lamp for one hour
+        public Light TurnOn()
         {
-            Electricity power; // Need electricity to turn on the lamp
+            Electricity power = null; // TODO: Need electricity to turn on the lamp
 
             if (power.Volts > this.MaximumVoltage)
             {
@@ -49,30 +70,37 @@ namespace DependencyInjectionDemo
             }
 
             bool turnedOn = isOperational && (power.Amps >= this.AmpsNeeded);
+            Light light = new Light(power.Volts * power.Amps);
             if (turnedOn)
             {
-                Console.WriteLine($"{this.Name} turned on and produced {this.Lumens} lumens.");
+                Console.WriteLine($"{this.Name} turned on and produced {light.Lumens} lumens.");
             }
             else
             {
                 Console.WriteLine($"Not enough power to turn on {this.Name} :(");
             }
+
+            return light;
         }
     }
 
-    // A main power source intended for a house
-    class MainPowerSource
+    class PowerGenerator
     {
-        private const double Voltage = 120;
-        private const double MaximumAmperage = 1000;
+        private readonly double Voltage = 120;
+        private readonly double MaximumAmperage = 10;
+        private double wattHoursRemaining;
         private bool isCircuitBlown = false;
 
-        public MainPowerSource()
+        public PowerGenerator(double wattHourCapacity)
         {
-            Console.WriteLine("Constructing an expensive MainPowerSource...");
-            System.Threading.Thread.Sleep(5000);
+            this.wattHoursRemaining = wattHourCapacity;
+
+            int cost = Convert.ToInt32(Voltage * MaximumAmperage * wattHourCapacity / 1000) + 1;
+            Console.WriteLine($"Constructing a PowerGenerator(cost:{cost})...");
+            System.Threading.Thread.Sleep(cost);
         }
 
+        // Generate electricity for one hour
         public Electricity GenerateElectricty(double ampsRequested)
         {
             if (ampsRequested > MaximumAmperage)
@@ -84,11 +112,56 @@ namespace DependencyInjectionDemo
             {
                 return new Electricity(0, 0);
             }
+
+            Electricity requestedElectricty =  new Electricity(Voltage, ampsRequested);
+            if (this.wattHoursRemaining >= requestedElectricty.Watts)
+            {
+                this.wattHoursRemaining -= requestedElectricty.Watts;
+                return requestedElectricty;
+            }
             else
             {
-                return new Electricity(Voltage, ampsRequested);
+                this.wattHoursRemaining = 0;
+                double remainingAmps = this.wattHoursRemaining / this.Voltage;
+                return new Electricity(this.Voltage, remainingAmps);
             }
         }
     }
 
+    class Electricity
+    {
+        public double Volts { get; }
+        public double Amps { get; }
+        public double Watts
+        {
+            get
+            {
+                return this.Volts * this.Amps;
+            }
+        }
+        public Electricity(double volts, double amps)
+        {
+            this.Volts = volts;
+            this.Amps = amps;
+        }
+
+        public override string ToString()
+        {
+            return $"Volts: {this.Volts} Amps: {this.Amps}";
+        }
+    }
+
+    class Light
+    {
+        public double Lumens { get; }
+        public Light(double lumens)
+        {
+            this.Lumens = lumens;
+        }
+
+        public override string ToString()
+        {
+            return $"Lumens: {this.Lumens}";
+        }
+    }
 }
