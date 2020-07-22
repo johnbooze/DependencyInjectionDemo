@@ -33,7 +33,7 @@ namespace DependencyInjectionDemo
             Console.WriteLine("Test - second lamp can turn on for 4 hours producing at least 100 lumens");
             foreach (var iteration in Enumerable.Range(1, 4))
             {
-                Light lightProduced = lamp.TurnOn();
+                Light lightProduced = secondLamp.TurnOn();
                 Assert(lightProduced.Lumens > 100, $"Iteration {iteration} Produced at least 100 lumens");
             }
         }
